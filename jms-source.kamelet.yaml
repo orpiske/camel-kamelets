@@ -1,0 +1,48 @@
+apiVersion: camel.apache.org/v1alpha1
+kind: Kamelet
+metadata:
+  name: jms-source
+  annotations:
+    camel.apache.org/kamelet.support.level: "Preview"
+    camel.apache.org/provider: "Apache Software Foundation"
+    camel.apache.org/kamelet.group: "SQL"
+  labels:
+    camel.apache.org/kamelet.type: "source"
+spec:
+  definition:
+    title: "JMS Example"
+    description: "Produces periodic events with a custom payload sending data to JMS"
+    required:
+      - destinationName
+      - brokerURL
+    type: object
+    properties:
+      destinationType:
+        title: "Destination Type"
+        description: "The JMS destination type (i.e.: queue or topic)"
+        type: string
+        default: queue
+      destinationName:
+        title: "Destination Name"
+        description: "The JMS destination name"
+        type: string
+      brokerURL:
+        title: "Broker URL"
+        description: "The JMS URL"
+        type: string
+  types:
+    out:
+      mediaType: text/plain
+  dependencies:
+  - "camel:jms"
+  flow:
+    beans:
+      name: connectionFactory
+      type: org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory
+      properties:
+        brokerURL: '{{brokerUrl}}'
+    from:
+      uri: "jms:{{destinationType}}:{{destinationName}}"
+      steps:
+      - to:
+        uri: "log:info"
